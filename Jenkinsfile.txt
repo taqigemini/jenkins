@@ -1,0 +1,59 @@
+pipeline {
+    agent any
+    environment {
+        // Define environment variables if needed
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/your-repo.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                // Commands to build your application
+                sh 'make build'
+            }
+        }
+        stage('Test') {
+            steps {
+                // Commands to run your tests
+                sh 'make test'
+                junit '**/target/test-*.xml'
+            }
+        }
+        stage('Code Quality Analysis') {
+            steps {
+                // Commands to run code quality analysis
+                sh 'sonar-scanner'
+            }
+        }
+        stage('Deploy to Staging') {
+            steps {
+                // Commands to deploy to staging environment
+                sh 'make deploy-staging'
+            }
+        }
+        stage('Deploy to Production') {
+            steps {
+                // Commands to deploy to production environment
+                input 'Deploy to production?'
+                sh 'make deploy-production'
+            }
+        }
+    }
+    post {
+        always {
+            // Steps to execute always, like cleaning up
+            cleanWs()
+        }
+        success {
+            // Notify success
+            slackSend(channel: '#devops', message: 'Pipeline succeeded')
+        }
+        failure {
+            // Notify failure
+            slackSend(channel: '#devops', message: 'Pipeline failed')
+        }
+    }
+}
