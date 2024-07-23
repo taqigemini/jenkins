@@ -1,4 +1,3 @@
-#!/usr/bin/env groovy
 pipeline {
     agent { node { label 'swarm-ci' } }
 
@@ -27,9 +26,10 @@ pipeline {
 
         stage("Build and start test image") {
             steps {
-                sh "docker-composer build"
+                sh "docker-compose build"
                 sh "docker-compose up -d"
-                waitUntilServicesReady
+                // Uncomment or define waitUntilServicesReady if this is a custom function
+                // waitUntilServicesReady()
             }
         }
 
@@ -43,9 +43,9 @@ pipeline {
                 always {
                     junit "build/junit/*.xml"
                     step([
-                            $class              : "CloverPublisher",
-                            cloverReportDir     : "build/coverage",
-                            cloverReportFileName: "clover.xml"
+                        $class              : "CloverPublisher",
+                        cloverReportDir     : "build/coverage",
+                        cloverReportFileName: "clover.xml"
                     ])
                 }
             }
@@ -113,21 +113,21 @@ pipeline {
             post {
                 success {
                     slackSend(
-                            teamDomain: "${env.SLACK_TEAM_DOMAIN}",
-                            token: "${env.SLACK_TOKEN}",
-                            channel: "${env.SLACK_CHANNEL}",
-                            color: "good",
-                            message: "${env.STACK_PREFIX} production deploy: *${env.DEPLOY_VERSION}*. <${env.DEPLOY_URL}|Access service> - <${env.BUILD_URL}|Check build>"
+                        teamDomain: "${env.SLACK_TEAM_DOMAIN}",
+                        token: "${env.SLACK_TOKEN}",
+                        channel: "${env.SLACK_CHANNEL}",
+                        color: "good",
+                        message: "${env.STACK_PREFIX} production deploy: *${env.DEPLOY_VERSION}*. <${env.DEPLOY_URL}|Access service> - <${env.BUILD_URL}|Check build>"
                     )
                 }
 
                 failure {
                     slackSend(
-                            teamDomain: "${env.SLACK_TEAM_DOMAIN}",
-                            token: "${env.SLACK_TOKEN}",
-                            channel: "${env.SLACK_CHANNEL}",
-                            color: "danger",
-                            message: "${env.STACK_PREFIX} production deploy failed: *${env.DEPLOY_VERSION}*. <${env.BUILD_URL}|Check build>"
+                        teamDomain: "${env.SLACK_TEAM_DOMAIN}",
+                        token: "${env.SLACK_TOKEN}",
+                        channel: "${env.SLACK_CHANNEL}",
+                        color: "danger",
+                        message: "${env.STACK_PREFIX} production deploy failed: *${env.DEPLOY_VERSION}*. <${env.BUILD_URL}|Check build>"
                     )
                 }
             }
